@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Safety Control Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <h1>LLM Safety Control</h1>
+            </div>
+            <div class="header-actions">
+                <button id="new-session" class="btn btn-secondary">New Session</button>
+                <span id="session-id" class="session-badge">No Session</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <h2>💬 Chat</h2>
+                    <span class="model-badge">DeepSeek Chat</span>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="welcome-message">
+                        <h3>Welcome to the Safety Control Demo</h3>
+                        <p>Chat with the AI and watch the risk metrics update in real-time.</p>
+                        <p>Try escalating your questions gradually to see how the system responds!</p>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <textarea id="chat-input" placeholder="Type your message... (Press Enter to send)"
+                        rows="2"></textarea>
+                    <button id="send-btn" class="btn btn-primary">
+                        <span>Send</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Risk Dashboard -->
+            <div class="risk-panel">
+                <div class="risk-header">
+                    <h2>📊 Risk Dashboard</h2>
+                    <span id="turn-counter" class="turn-badge">Turn: 0</span>
+                </div>
+
+                <!-- Main Risk Meters -->
+                <div class="risk-meters">
+                    <div class="meter-card">
+                        <div class="meter-label">
+                            <span>Instant Risk (R₀)</span>
+                            <span id="instant-risk-value" class="meter-value">0.000</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div id="instant-risk-bar" class="meter-fill instant"></div>
+                        </div>
+                        <p class="meter-desc">Single-turn risk from current message</p>
+                    </div>
+
+                    <div class="meter-card">
+                        <div class="meter-label">
+                            <span>Accumulated Risk</span>
+                            <span id="accumulated-risk-value" class="meter-value">0.000</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div id="accumulated-risk-bar" class="meter-fill accumulated"></div>
+                        </div>
+                        <p class="meter-desc">EMA over conversation (α=0.8)</p>
+                    </div>
+
+                    <div class="meter-card highlight">
+                        <div class="meter-label">
+                            <span>Effective Risk</span>
+                            <span id="effective-risk-value" class="meter-value">0.000</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div id="effective-risk-bar" class="meter-fill effective"></div>
+                        </div>
+                        <p class="meter-desc">max(instant, accumulated) - used for control</p>
+                    </div>
+                </div>
+
+                <!-- Control Parameters -->
+                <div class="control-section">
+                    <h3>🎛️ Control Parameters</h3>
+                    <div class="control-grid">
+                        <div class="control-item">
+                            <div class="control-label">Temperature</div>
+                            <div id="temperature-display" class="control-value temperature">0.90</div>
+                            <div class="temperature-indicator">
+                                <div id="temp-bar" class="temp-fill"></div>
+                            </div>
+                            <p class="control-formula">T = 0.9 - R × 0.7</p>
+                        </div>
+                        <div class="control-item" id="bias-container">
+                            <div class="control-label">Refusal Bias</div>
+                            <div id="bias-status" class="bias-status inactive">INACTIVE</div>
+                            <p id="bias-strength" class="control-desc">Strength: 0.0</p>
+                            <p class="control-formula">Triggers: R₀>0.7 OR acc>0.6</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAMINAR FRAMEWORK SECTION -->
+                <div class="laminar-section">
+                    <h3>🌊 Laminar Framework</h3>
+
+                    <!-- Flow State Indicator -->
+                    <div class="flow-state-container">
+                        <div class="flow-state-label">Flow State</div>
+                        <div id="flow-state" class="flow-state laminar">LAMINAR</div>
+                        <p class="flow-desc" id="flow-desc">Smooth, safe trajectory</p>
+                    </div>
+
+                    <!-- Laminar Metrics Grid -->
+                    <div class="laminar-grid">
+                        <div class="laminar-metric">
+                            <span class="metric-label">Turbulence (τ)</span>
+                            <div class="metric-bar-container">
+                                <div id="turbulence-bar" class="metric-bar turbulence"></div>
+                            </div>
+                            <span id="turbulence-value" class="metric-value">0.000</span>
+                        </div>
+                        <div class="laminar-metric">
+                            <span class="metric-label">Energy (E)</span>
+                            <div class="metric-bar-container">
+                                <div id="energy-bar" class="metric-bar energy"></div>
+                            </div>
+                            <span id="energy-value" class="metric-value">0.000</span>
+                        </div>
+                        <div class="laminar-metric">
+                            <span class="metric-label">Safety Margin</span>
+                            <div class="metric-bar-container">
+                                <div id="margin-bar" class="metric-bar margin"></div>
+                            </div>
+                            <span id="margin-value" class="metric-value">1.000</span>
+                        </div>
+                        <div class="laminar-metric">
+                            <span class="metric-label">Risk Signal</span>
+                            <div class="metric-bar-container">
+                                <div id="risk-signal-bar" class="metric-bar risk-signal"></div>
+                            </div>
+                            <span id="risk-signal-value" class="metric-value">0.000</span>
+                        </div>
+                    </div>
+
+                    <!-- Reynolds Number Display -->
+                    <div class="reynolds-container">
+                        <div class="reynolds-header">
+                            <span class="reynolds-label">Semantic Reynolds Number</span>
+                            <span id="reynolds-value" class="reynolds-value">0.000</span>
+                        </div>
+                        <div class="reynolds-bar-container">
+                            <div id="reynolds-bar" class="reynolds-bar"></div>
+                            <div class="reynolds-zones">
+                                <span class="zone laminar">Laminar</span>
+                                <span class="zone transitional">Transitional</span>
+                                <span class="zone turbulent">Turbulent</span>
+                            </div>
+                        </div>
+                        <div class="regime-badges">
+                            <span id="risk-level-badge" class="badge risk-level safe">SAFE</span>
+                            <span id="flow-regime-badge" class="badge flow-regime laminar">LAMINAR</span>
+                        </div>
+                    </div>
+
+                    <!-- Safety Controls Status -->
+                    <div class="safety-controls">
+                        <div class="control-status" id="dcbf-status">
+                            <span class="status-label">DCBF Filter</span>
+                            <span class="status-indicator inactive">OFF</span>
+                        </div>
+                        <div class="control-status" id="brake-status">
+                            <span class="status-label">Semantic Brake</span>
+                            <span class="status-indicator inactive">OFF</span>
+                        </div>
+                        <div class="control-status" id="decoder-mode">
+                            <span class="status-label">Decoder</span>
+                            <span class="status-indicator normal">normal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Components -->
+                <div class="components-section">
+                    <h3>🔍 Risk Components</h3>
+                    <div class="components-grid">
+                        <div class="component-item">
+                            <span class="component-label">Toxicity</span>
+                            <div class="component-bar-container">
+                                <div id="toxicity-bar" class="component-bar"></div>
+                            </div>
+                            <span id="toxicity-value" class="component-value">0.00</span>
+                        </div>
+                        <div class="component-item">
+                            <span class="component-label">Harm Potential</span>
+                            <div class="component-bar-container">
+                                <div id="harm-bar" class="component-bar"></div>
+                            </div>
+                            <span id="harm-value" class="component-value">0.00</span>
+                        </div>
+                        <div class="component-item">
+                            <span class="component-label">Manipulation</span>
+                            <div class="component-bar-container">
+                                <div id="manipulation-bar" class="component-bar"></div>
+                            </div>
+                            <span id="manipulation-value" class="component-value">0.00</span>
+                        </div>
+                        <div class="component-item">
+                            <span class="component-label">Escalation</span>
+                            <div class="component-bar-container">
+                                <div id="escalation-bar" class="component-bar"></div>
+                            </div>
+                            <span id="escalation-value" class="component-value">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Chart -->
+                <div class="history-section">
+                    <h3>📈 Risk History</h3>
+                    <div class="history-chart" id="history-chart">
+                        <div class="chart-placeholder">Risk history will appear here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

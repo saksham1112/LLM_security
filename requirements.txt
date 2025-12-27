@@ -1,0 +1,31 @@
+# Core Dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# LLM Backend
+ollama==0.1.6
+
+# ML/AI
+numpy==1.26.2
+sentence-transformers==2.2.2
+torch==2.1.1
+transformers==4.35.2
+
+# ONNX Optimization
+onnx==1.15.0
+onnxruntime==1.16.3
+optimum==1.16.0
+
+# Performance Optimization
+numba==0.58.1
+faiss-cpu==1.7.4
+
+# Monitoring & Utilities
+psutil==5.9.6
+redis==5.0.1
+hiredis==2.3.2
+
+# Development/Testing (optional)
+pytest==7.4.3
+locust==2.18.0

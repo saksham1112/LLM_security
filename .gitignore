@@ -1,0 +1,99 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs - EXCLUDE ALL (private session data)
+logs/
+*.log
+
+# Tests - EXCLUDE (not needed in production repo)
+test_*.py
+tests/
+.pytest_cache/
+threshold_results.txt
+
+# Documentation - EXCLUDE (keep main README only)
+docs/
+CLEANUP_PLAN.md
+CHECKPOINT_*.md
+GIT_PUSH_CHECKLIST.md
+
+# ONNX Models - EXCLUDE (too large, download separately)
+models/
+*.onnx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# API keys and secrets
+.env
+secrets.json
+*.key
+
+# Artifacts (personal notes)
+.gemini/
+
+# Config (optional)
+configs/
+pyproject.toml
+
+# Ollama models (managed separately)
+ollama_models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# API keys and secrets
+.env
+secrets.json
+*.key
+
+# Artifacts (personal notes)
+.gemini/
+
+# Test outputs
+test_output/
+benchmark_results/
