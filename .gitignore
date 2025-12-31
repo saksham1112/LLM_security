@@ -22,9 +22,9 @@ wheels/
 
 # Virtual Environment
 venv/
-env/
 ENV/
-.venv/
+env/
+.venv
 
 # IDE
 .vscode/
@@ -32,68 +32,36 @@ ENV/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Logs - EXCLUDE ALL (private session data)
+# Logs & Sessions
 logs/
 *.log
+*.jsonl
+sessions/
 
-# Tests - EXCLUDE (not needed in production repo)
-test_*.py
-tests/
+# Models & Data (large files)
+models/*.onnx
+models/*.pkl
+models/*.bin
+datasets/*.jsonl
+!datasets/calibration.jsonl
+
+# Artifacts (dev-only)
+.gemini/
+artifacts/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Testing
 .pytest_cache/
-threshold_results.txt
-
-# Documentation - EXCLUDE (keep main README only)
-docs/
-CLEANUP_PLAN.md
-CHECKPOINT_*.md
-GIT_PUSH_CHECKLIST.md
-
-# ONNX Models - EXCLUDE (too large, download separately)
-models/
-*.onnx
-
-# OS
-.DS_Store
-Thumbs.db
+.coverage
+htmlcov/
+.tox/
 
 # Temporary files
 *.tmp
-temp/
-tmp/
-
-# API keys and secrets
-.env
-secrets.json
-*.key
-
-# Artifacts (personal notes)
-.gemini/
-
-# Config (optional)
-configs/
-pyproject.toml
-
-# Ollama models (managed separately)
-ollama_models/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-temp/
-tmp/
-
-# API keys and secrets
-.env
-secrets.json
-*.key
-
-# Artifacts (personal notes)
-.gemini/
-
-# Test outputs
-test_output/
-benchmark_results/
+*.temp
+.cache/

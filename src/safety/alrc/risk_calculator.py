@@ -83,6 +83,65 @@ class RiskCalculator:
         """Initialize the risk calculator."""
         self._risk_history: Dict[str, List[float]] = {}
     
+    def _apply_intent_based_policy(
+        self,
+        base_risk: float,
+        intent_profile: dict,
+        dominance_margin: float
+    ) -> tuple[float, float]:
+        """
+        POLICY LAYER: Apply intent-based risk adjustment.
+        
+        This is NOT Phase A (which only measures).
+        This is policy logic that decides what to do with Phase A's measurements.
+        
+        Design principles:
+        - Low dominance_margin = ambiguous = NO adjustment (attacks live here)
+        - High educational score + high margin = potential discount
+        - Instructional/malicious dominant = NO discount
+        - Maximum discount: 30%
+        - Minimum risk floor: 0.2
+        
+        Args:
+            base_risk: Semantic hazard score (0-1)
+            intent_profile: Phase A measurement {edu: 0.7, op: 0.3, ...}
+            dominance_margin: Confidence in dominant intent
+        
+        Returns:
+            (adjusted_risk, discount_applied)
+        """
+        # Policy Rule 1: Don't trust ambiguous queries
+        if dominance_margin < 0.15:
+            # Low margin = could be educational OR instructional
+            # Attacks specifically craft prompts in this ambiguous zone
+            return base_risk, 0.0
+        
+        # Policy Rule 2: Don't discount already-safe queries
+        if base_risk <= 0.2:
+            return base_risk, 0.0
+        
+        # Extract intent scores
+        edu_score = intent_profile.get('educational', 0.0)
+        inst_score = intent_profile.get('instructional', 0.0)
+        mal_score = intent_profile.get('malicious', 0.0)
+        
+        # Policy Rule 3: No discount if instructional or malicious
+        if inst_score > edu_score or mal_score > 0.3:
+            return base_risk, 0.0
+        
+        # Policy Rule 4: Educational-dominant queries with high confidence
+        if edu_score > 0.65 and dominance_margin > 0.20:
+            # Scale discount by both educational strength and confidence
+            discount_pct = min(0.30, edu_score * dominance_margin)
+            discount_amount = base_risk * discount_pct
+            adjusted_risk = max(0.2, base_risk - discount_amount)  # Floor at 0.2
+            actual_discount = base_risk - adjusted_risk
+            
+            return adjusted_risk, actual_discount
+        
+        # Default: no adjustment
+        return base_risk, 0.0
+    
     def _sigmoid(self, x: float) -> float:
         """Sigmoid function for smooth transitions."""
         return 1.0 / (1.0 + np.exp(-x))

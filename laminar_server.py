@@ -1,6 +1,6 @@
 """
-Laminar Server v4.0
-Single unified model: Uncensored Dolphin + ALRC Safety Pipeline
+Laminar Server v5.0
+ALRC v5.0: Complete safety system with UQ + Governance
 
 Run: python laminar_server.py
 UI:  http://localhost:8002
@@ -8,6 +8,8 @@ UI:  http://localhost:8002
 
 import asyncio
 import time
+import os
+import numpy as np
 from uuid import uuid4
 from datetime import datetime
 from typing import Optional, List
@@ -18,7 +20,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# ALRC v4.0 Pipeline
+# ALRC v5.0 Pipeline
 from src.safety.alrc.pipeline import ALRCPipeline
 from src.safety.alrc.risk_logger import RiskAnalysisLogger
 
@@ -27,9 +29,9 @@ from src.llm.dolphin_ollama import DolphinOllamaBackend
 
 # === App Configuration ===
 app = FastAPI(
-    title="Laminar v4.0 - Secure Uncensored AI",
-    description="Dolphin LLM with Advanced Laminar Risk Calculus safety layer",
-    version="4.0.0",
+    title="Laminar v5.0 - Complete AI Safety System",
+    description="Dolphin LLM with ALRC v5.0: Phases A+T+L+UQ+Governance",
+    version="5.0.0",
 )
 
 app.add_middleware(
@@ -42,13 +44,31 @@ app.add_middleware(
 
 # === Initialize Components ===
 print("\n" + "="*60)
-print("🌊 LAMINAR v4.0 - Secure Uncensored AI")
+print("🌊 LAMINAR v5.0 - Complete AI Safety System")
 print("="*60)
 
-print("\n📡 Loading ALRC v4.0 Safety Pipeline...")
+print("\n📡 Loading ALRC v5.0 Safety Pipeline...")
+print("   Phase A: Semantic Risk Detection")
+print("   Phase T: Trajectory Intelligence")
+print("   Phase L: Long-Term Memory")
+print("   Phase UQ: Uncertainty Quantification")
+print("   Phase 3: Governance & Control")
+
+# Check if UQ model exists
+uq_model_path = "models/conformal.json"
+enable_uq = os.path.exists(uq_model_path)
+
+if not enable_uq:
+    print(f"   ⚠️  Phase UQ disabled (model not found: {uq_model_path})")
+    print(f"   Run: python scripts/calibrate_uq.py to enable UQ")
+
 safety_pipeline = ALRCPipeline(
     semantic_model="all-MiniLM-L6-v2",
-    enable_semantic=True
+    enable_semantic=True,
+    enable_trajectory=True,
+    enable_long_term=True,
+    enable_uq=enable_uq,
+    uq_model_path=uq_model_path if enable_uq else None
 )
 print("✅ Safety pipeline ready")
 
@@ -70,9 +90,10 @@ except Exception as e:
     dolphin = None
 
 print("\n" + "="*60)
-print("🚀 Laminar v4.0 Ready")
+print("🚀 Laminar v5.0 Ready")
 print("   Frontend: http://localhost:8002")
 print("   API:      http://localhost:8002/docs")
+print("   Phases:   A ✅ | T ✅ | L ✅ | UQ", "✅" if enable_uq else "❌", "| Gov ✅")
 print("="*60 + "\n")
 
 
@@ -87,10 +108,22 @@ class ChatResponse(BaseModel):
     session_id: str
     risk_score: float
     risk_zone: str  # "green", "yellow", "red"
-    action: str  # "allow", "steer", "clarify", "block" 
+    action: str  # "allow", "steer", "clarify", "block"
     latency_ms: float
     components: dict
     steering_message: Optional[str] = None
+    
+    # Phase L
+    long_term_drift: float = 0.0
+    
+    # Phase UQ
+    is_uncertain: bool = False
+    uq_confidence: float = 1.0
+    prediction_set: Optional[list] = None
+    
+    # Phase T
+    escalation_score: float = 0.0
+    policy_state: str = "benign"
 
 
 class HealthResponse(BaseModel):
@@ -98,6 +131,7 @@ class HealthResponse(BaseModel):
     pipeline: str
     dolphin: str
     uptime_seconds: float
+    phases: dict
 
 
 # Track startup time
@@ -261,6 +295,15 @@ async def chat(request: ChatRequest):
             "adaptive": pipeline_result.components.adaptive,
         },
         steering_message=pipeline_result.steering_message,
+        # Phase L
+        long_term_drift=pipeline_result.long_term_drift,
+        # Phase UQ
+        is_uncertain=getattr(pipeline_result, 'is_uncertain', False),
+        uq_confidence=getattr(pipeline_result, 'uq_confidence', 1.0),
+        prediction_set=list(getattr(pipeline_result, 'prediction_set', set())) if hasattr(pipeline_result, 'prediction_set') and pipeline_result.prediction_set else None,
+        # Phase T
+        escalation_score=pipeline_result.escalation_score,
+        policy_state=pipeline_result.policy_state,
     )
 
 
@@ -282,6 +325,12 @@ async def health_check():
         pipeline="ready",
         dolphin="connected" if dolphin else "unavailable",
         uptime_seconds=time.time() - START_TIME,
+        phases={
+            "phase_a": safety_pipeline.enable_semantic,
+            "phase_t": safety_pipeline.enable_trajectory,
+            "phase_l": safety_pipeline.enable_long_term,
+            "phase_uq": safety_pipeline.enable_uq if hasattr(safety_pipeline, 'enable_uq') else False,
+        }
     )
 
 

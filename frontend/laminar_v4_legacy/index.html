@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laminar v5.0 - Complete AI Safety System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🌊</span>
+                    <h1>Laminar <span class="version">v5.0</span></h1>
+                </div>
+                <div class="header-right">
+                    <!-- Phase Status Indicators -->
+                    <div class="phase-indicators">
+                        <span class="phase-badge" id="phase-a" title="Phase A: Semantic Risk Detection">A</span>
+                        <span class="phase-badge" id="phase-t" title="Phase T: Trajectory Intelligence">T</span>
+                        <span class="phase-badge" id="phase-l" title="Phase L: Long-Term Memory">L</span>
+                        <span class="phase-badge" id="phase-uq" title="Phase UQ: Uncertainty Quantification">UQ</span>
+                        <span class="phase-badge" id="phase-3" title="Phase 3: Governance">Gov</span>
+                    </div>
+                    <div class="session-info">
+                        <span class="session-label">Session:</span>
+                        <span id="session-id" class="session-value">-</span>
+                    </div>
+                    <button id="reset-btn" class="btn-reset" title="Reset Session">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                            <path d="M3 21v-5h5" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Risk Dashboard -->
+            <aside class="risk-dashboard">
+                <h2>🛡️ Safety Monitor</h2>
+
+                <div class="risk-gauge">
+                    <div class="gauge-label">Risk Score</div>
+                    <div class="gauge-container">
+                        <div id="risk-bar" class="gauge-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="gauge-value">
+                        <span id="risk-score">0.00</span>
+                        <span id="risk-zone" class="zone-badge zone-green">GREEN</span>
+                    </div>
+                    <div class="action-badge-container">
+                        <span id="action-badge" class="action-badge action-allow">ALLOW</span>
+                    </div>
+                </div>
+
+                <div class="risk-components">
+                    <h3>Risk Components</h3>
+                    <div class="component">
+                        <span class="component-label">Adaptive</span>
+                        <div class="component-bar">
+                            <div id="bar-adaptive" class="bar-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="val-adaptive" class="component-value">0.00</span>
+                    </div>
+                    <div class="component">
+                        <span class="component-label">Short-Term</span>
+                        <div class="component-bar">
+                            <div id="bar-short" class="bar-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="val-short" class="component-value">0.00</span>
+                    </div>
+                    <div class="component">
+                        <span class="component-label">Long-Term</span>
+                        <div class="component-bar">
+                            <div id="bar-long" class="bar-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="val-long" class="component-value">0.00</span>
+                    </div>
+                    <div class="component">
+                        <span class="component-label">Semantic</span>
+                        <div class="component-bar">
+                            <div id="bar-semantic" class="bar-fill" style="width: 0%"></div>
+                        </div>
+                        <span id="val-semantic" class="component-value">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Phase T: Trajectory -->
+                <div class="trajectory-section">
+                    <h3>📈 Trajectory (Phase T)</h3>
+                    <div class="stat-row">
+                        <span>Escalation:</span>
+                        <span id="escalation-score">0.00</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Policy State:</span>
+                        <span id="policy-state" class="policy-badge policy-benign">benign</span>
+                    </div>
+                </div>
+
+                <!-- Phase L: Long-Term -->
+                <div class="longterm-section">
+                    <h3>🧠 Long-Term (Phase L)</h3>
+                    <div class="stat-row">
+                        <span>Drift Score:</span>
+                        <span id="drift-score">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Phase UQ: Uncertainty -->
+                <div class="uq-section">
+                    <h3>🎯 Uncertainty (Phase UQ)</h3>
+                    <div class="stat-row">
+                        <span>Prediction Set:</span>
+                        <span id="prediction-set">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Confidence:</span>
+                        <span id="uq-confidence">-</span>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <h3>Session Stats</h3>
+                    <div class="stat-row">
+                        <span>Messages:</span>
+                        <span id="stat-messages">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Blocked:</span>
+                        <span id="stat-blocked">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Steered:</span>
+                        <span id="stat-steered">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg Latency:</span>
+                        <span id="stat-latency">0ms</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Container -->
+            <section class="chat-section">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🐬</div>
+                        <h2>Welcome to Laminar v5.0</h2>
+                        <p>I'm Dolphin, an uncensored AI assistant protected by the Advanced Laminar Risk Calculus
+                            (ALRC) v5.0 safety system.</p>
+                        <div class="phases-info">
+                            <h4>Active Safety Phases:</h4>
+                            <ul class="features">
+                                <li><strong>Phase A:</strong> Semantic risk detection with intent profiling</li>
+                                <li><strong>Phase T:</strong> Trajectory-based escalation tracking</li>
+                                <li><strong>Phase L:</strong> Long-term memory and drift detection</li>
+                                <li><strong>Phase UQ:</strong> Uncertainty quantification with coverage guarantees</li>
+                                <li><strong>Phase 3:</strong> Governance controls and safety invariants</li>
+                            </ul>
+                        </div>
+                        <div class="zones-info">
+                            <h4>Safety Zones:</h4>
+                            <ul class="features">
+                                <li>🟢 <strong>Green Zone:</strong> Safe queries get full responses</li>
+                                <li>🟡 <strong>Yellow Zone:</strong> Borderline queries get steered responses</li>
+                                <li>🔴 <strong>Red Zone:</strong> Harmful queries are blocked</li>
+                            </ul>
+                        </div>
+                        <p class="disclaimer">The safety dashboard shows real-time risk analysis for each message.</p>
+                    </div>
+                </div>
+
+                <form id="chat-form" class="chat-form">
+                    <div class="input-container">
+                        <textarea id="message-input" placeholder="Type your message..." rows="1" autofocus></textarea>
+                        <button type="submit" id="send-btn" class="btn-send">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 2 11 13" />
+                                <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        <span id="latency-display" class="latency">Ready</span>
+                        <span class="powered-by">Powered by ALRC v5.0</span>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

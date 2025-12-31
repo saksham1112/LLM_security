@@ -1,6 +1,6 @@
 /**
- * Laminar v4.0 - Frontend Application
- * Chat interface with real-time risk visualization
+ * Laminar v5.0 - Frontend Application
+ * Complete AI Safety System with all phases
  */
 
 class LaminarChat {
@@ -17,22 +17,41 @@ class LaminarChat {
         this.latencyDisplay = document.getElementById('latency-display');
         this.sessionIdDisplay = document.getElementById('session-id');
 
+        // Phase indicators
+        this.phaseA = document.getElementById('phase-a');
+        this.phaseT = document.getElementById('phase-t');
+        this.phaseL = document.getElementById('phase-l');
+        this.phaseUQ = document.getElementById('phase-uq');
+        this.phase3 = document.getElementById('phase-3');
+
         // Risk display elements
         this.riskScore = document.getElementById('risk-score');
         this.riskZone = document.getElementById('risk-zone');
         this.riskBar = document.getElementById('risk-bar');
+        this.actionBadge = document.getElementById('action-badge');
 
-        // Component bars
-        this.barAdaptive = document.getElementById('bar-adaptive');
+        // Component bars - Updated for v5 Phases
         this.barSemantic = document.getElementById('bar-semantic');
-        this.barShort = document.getElementById('bar-short');
-        this.barLong = document.getElementById('bar-long');
+        this.barTrajectory = document.getElementById('bar-trajectory');
+        this.barMemory = document.getElementById('bar-memory');
+        this.barUQ = document.getElementById('bar-uq');
 
-        // Component values
-        this.valAdaptive = document.getElementById('val-adaptive');
+        // Component values - Updated for v5 Phases
         this.valSemantic = document.getElementById('val-semantic');
-        this.valShort = document.getElementById('val-short');
-        this.valLong = document.getElementById('val-long');
+        this.valTrajectory = document.getElementById('val-trajectory');
+        this.valMemory = document.getElementById('val-memory');
+        this.valUQ = document.getElementById('val-uq');
+
+        // Phase T elements
+        this.escalationScore = document.getElementById('escalation-score');
+        this.policyState = document.getElementById('policy-state');
+
+        // Phase L elements
+        this.driftScore = document.getElementById('drift-score');
+
+        // Phase UQ elements
+        this.predictionSet = document.getElementById('prediction-set');
+        this.uqConfidence = document.getElementById('uq-confidence');
 
         // Stats
         this.statMessages = document.getElementById('stat-messages');
@@ -77,7 +96,7 @@ class LaminarChat {
             }
         });
 
-        // Health check
+        // Health check and phase status
         this.checkHealth();
     }
 
@@ -94,6 +113,9 @@ class LaminarChat {
             const response = await fetch(`${this.API_BASE}/health`);
             const data = await response.json();
 
+            // Update phase indicators
+            this.updatePhaseIndicators(data.phases || {});
+
             if (data.dolphin === 'unavailable') {
                 this.addSystemMessage(
                     '⚠️ Dolphin LLM is not available. Please run: `ollama serve` and `ollama pull dolphin-llama3`'
@@ -104,6 +126,34 @@ class LaminarChat {
                 '❌ Cannot connect to server. Please run: `python laminar_server.py`'
             );
         }
+    }
+
+    updatePhaseIndicators(phases) {
+        // Phase A: Semantic
+        if (phases.phase_a) {
+            this.phaseA.classList.add('active');
+        }
+
+        // Phase T: Trajectory
+        if (phases.phase_t) {
+            this.phaseT.classList.add('active');
+        }
+
+        // Phase L: Long-Term
+        if (phases.phase_l) {
+            this.phaseL.classList.add('active');
+        } else {
+            this.phaseL.classList.add('degraded');
+            this.phaseL.title = 'Phase L: Long-Term Memory (Degraded - No Redis)';
+        }
+
+        // Phase UQ: Uncertainty
+        if (phases.phase_uq) {
+            this.phaseUQ.classList.add('active');
+        }
+
+        // Phase 3: Governance (always active)
+        this.phase3.classList.add('active');
     }
 
     async handleSubmit(e) {
@@ -256,6 +306,10 @@ class LaminarChat {
         this.riskZone.textContent = data.risk_zone.toUpperCase();
         this.riskZone.className = `zone-badge zone-${data.risk_zone}`;
 
+        // Update action badge
+        this.actionBadge.textContent = data.action.toUpperCase();
+        this.actionBadge.className = `action-badge action-${data.action}`;
+
         // Update risk bar color
         if (data.risk_zone === 'green') {
             this.riskBar.style.background = 'var(--zone-green)';
@@ -265,13 +319,50 @@ class LaminarChat {
             this.riskBar.style.background = 'var(--zone-red)';
         }
 
-        // Update component bars
+        // Update component bars - v5 Phases (TRY BOTH LOCATIONS)
         const components = data.components || {};
+        const layers = data.layers || {};
+        const semantic = layers.L4_semantic_engine || {};
 
-        this.setComponent('adaptive', components.adaptive || 0);
-        this.setComponent('semantic', components.semantic || 0);
-        this.setComponent('short', components.short_term || 0);
-        this.setComponent('long', components.long_term || 0);
+        // DEBUG: Log ALL possible sources
+        console.log('Full data structure:', {
+            'data.escalation_score': data.escalation_score,
+            'components.short_term': components.short_term,
+            'data.long_term_drift': data.long_term_drift,
+            'components.long_term': components.long_term,
+            fullData: data
+        });
+
+        this.setComponent('semantic', semantic.risk || components.semantic || 0);
+        // Try root level first, fall back to components
+        this.setComponent('trajectory', data.escalation_score || components.short_term || 0);
+        this.setComponent('memory', data.long_term_drift || components.long_term || 0);
+        this.setComponent('uq', data.uq_confidence || 0);
+
+        // Update Phase T: Trajectory
+        if (data.escalation_score !== undefined) {
+            this.escalationScore.textContent = data.escalation_score.toFixed(2);
+        }
+        if (data.policy_state) {
+            this.policyState.textContent = data.policy_state;
+            this.policyState.className = `policy-badge policy-${data.policy_state}`;
+        }
+
+        // Update Phase L: Long-Term Drift
+        if (data.long_term_drift !== undefined) {
+            this.driftScore.textContent = data.long_term_drift.toFixed(2);
+        }
+
+        // Update Phase UQ: Uncertainty
+        if (data.prediction_set) {
+            const setStr = Array.isArray(data.prediction_set)
+                ? data.prediction_set.join(', ')
+                : JSON.stringify(data.prediction_set);
+            this.predictionSet.textContent = setStr || '-';
+        }
+        if (data.uq_confidence !== undefined) {
+            this.uqConfidence.textContent = data.uq_confidence.toFixed(2);
+        }
     }
 
     setComponent(name, value) {
@@ -319,11 +410,25 @@ class LaminarChat {
         this.riskBar.style.width = '0%';
         this.riskZone.textContent = 'GREEN';
         this.riskZone.className = 'zone-badge zone-green';
+        this.actionBadge.textContent = 'ALLOW';
+        this.actionBadge.className = 'action-badge action-allow';
 
         this.setComponent('adaptive', 0);
         this.setComponent('semantic', 0);
         this.setComponent('short', 0);
         this.setComponent('long', 0);
+
+        // Reset Phase T
+        this.escalationScore.textContent = '0.00';
+        this.policyState.textContent = 'benign';
+        this.policyState.className = 'policy-badge policy-benign';
+
+        // Reset Phase L
+        this.driftScore.textContent = '0.00';
+
+        // Reset Phase UQ
+        this.predictionSet.textContent = '-';
+        this.uqConfidence.textContent = '-';
 
         // Clear messages
         this.chatMessages.innerHTML = `

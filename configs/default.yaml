@@ -1,0 +1,144 @@
+# Default configuration for the Trajectory-Aware Safety Control System
+
+# Server settings
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+
+# LLM Backend
+llm:
+  backend: "ollama"  # Options: vllm, tgi, mock, ollama
+  model_name: "llama3"
+  base_url: "http://localhost:11434"  # Ollama default URL
+  max_tokens: 2048
+  temperature: 0.7
+  
+  # Latency budget (addresses Trap 4: Latency Denial)
+  latency_budget_ms: 500
+  timeout_ms: 30000
+
+# State management
+state:
+  redis:
+    url: "redis://localhost:6379"
+    session_ttl_seconds: 3600
+  
+  postgres:
+    url: "postgresql://localhost:5432/secure_llm"
+  
+  milvus:
+    host: "localhost"
+    port: 19530
+    collection: "trajectory_embeddings"
+
+# Risk estimation
+risk:
+  # Initial classifier model
+  classifier_model: "distilbert-base-uncased"
+  
+  # Risk accumulation settings
+  accumulator:
+    decay_rate: 0.1  # Per-turn decay
+    initial_value: 0.0
+    max_value: 1.0
+  
+  # Thresholds for mode transitions
+  thresholds:
+    safe_to_suspect: 0.3
+    suspect_to_unsafe: 0.7
+  
+  # Online learning (addresses Trap 6: Static Risk Model)
+  online_learning:
+    enabled: true
+    update_interval_turns: 100
+    learning_rate: 0.001
+
+# Control Barrier Functions
+cbf:
+  # Barrier parameters
+  barrier:
+    margin: 0.1
+    alpha: 0.5  # CBF class-K function parameter
+  
+  # Adaptive barrier (addresses Trap 5: Single-Point CBF)
+  adaptive:
+    enabled: true
+    tighten_rate: 0.05  # Per-turn tightening in suspect mode
+    relax_rate: 0.02    # Per-turn relaxing after safe turns
+
+# Layered defense (addresses Trap 5: Single-Point CBF)
+defense_layers:
+  pre_gate:
+    enabled: true
+    block_threshold: 0.9
+  
+  post_filter:
+    enabled: true
+    filter_threshold: 0.8
+  
+  escalation:
+    enabled: true
+    escalation_threshold: 0.95
+    require_human_review: true
+
+# Intent tracking
+intent:
+  prior:
+    safe: 0.9
+    suspect: 0.08
+    malicious: 0.02
+  
+  # Update parameters
+  update:
+    observation_weight: 0.3
+
+# Reachability analysis
+reachability:
+  enabled: true
+  simulation_depth: 3  # Turns to look ahead
+  sample_count: 10     # Trajectories to sample
+  
+  # Latency constraint (addresses Trap 4: Latency Denial)
+  max_compute_ms: 50
+
+# Evaluation
+evaluation:
+  # Diverse attack types (addresses Trap 1: Overfitting to Known Attacks)
+  attack_types:
+    - "crescendo"
+    - "smuggling"
+    - "jailbreak"
+    - "roleplay"
+    - "encoding"
+    - "generative"  # Novel attacks from adversarial generator
+  
+  # Holdout ratio for unknown attacks
+  holdout_attack_ratio: 0.2
+  
+  metrics:
+    - "time_to_failure"
+    - "attack_success_rate"
+    - "false_positive_rate"
+    - "latency_overhead"
+    - "capability_preservation"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "json"
+  
+  # Metrics export
+  prometheus:
+    enabled: true
+    port: 9090
+
+# Policy configuration (addresses Trap 2: Policy Chasing)
+# Policies are inputs, not hardcoded
+policies:
+  # Policy file path - can be swapped without code changes
+  policy_file: "configs/policies/default.yaml"
+  
+  # Policy categories (loaded from file)
+  # This system enforces trajectories, not content
+  enforcement_mode: "trajectory"  # Not "content"

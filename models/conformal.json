@@ -1,0 +1,9 @@
+{
+  "tau_safe": 0.15,
+  "tau_unsafe": 0.25,
+  "alpha": 0.05,
+  "calibrated": true,
+  "model_version": "precalibrated_v1",
+  "n_cal_safe": 10,
+  "n_cal_unsafe": 6
+}
